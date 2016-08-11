@@ -1,0 +1,4 @@
+# Standard gitignore for java projects
+/server/target
+/server/.classpath
+/server/.project

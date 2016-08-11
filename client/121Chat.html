@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+        <meta charset="utf-8" />
+
+        <title>121 Chat</title>
+
+        <link href="bootstrap.css" rel="stylesheet">
+
+	<style>
+		body {
+			padding:20px;
+		}
+		#console {
+			height: 400px;
+			overflow: auto;
+		}
+		.touser-msg{color:blue;}
+		.username-msg {color:orange;}
+		.connect-msg {color:green;}
+		.disconnect-msg {color:red;}
+		.send-msg {color:#888}
+	</style>
+
+
+	<script src="js/socket.io/socket.io.js"></script>
+        <script src="js/moment.min.js"></script>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+	<script>
+
+                var userName = prompt("Please enter from username to load chat history if present", "672");
+		var user2 = prompt("Please enter second user", "320");
+
+		var socket = io.connect('http://172.16.18.84:5054'); 
+             
+		
+	
+		socket.on('loadthreadhistory', function(data){
+			output('<span class="username-msg">:</span>'+ data.message);	
+		});
+
+		socket.on('chat_message', function(data){
+			output('<span class="username-msg">:</span>'+ data.message);	
+		});
+		
+		socket.on('notification', function(data){
+			output('<span class="username-msg">:</span>'+ data.notificationtype+ '<span class="username-msg">:</span>'+ data.message);	
+		});
+
+		socket.on('disconnect', function() {
+			output('<span class="disconnect-msg">The client has disconnected!</span>');
+		});
+
+                function sendDisconnect() {
+                        socket.disconnect();
+                }
+	       
+		socket.on('connect', function(data) {
+			output('<span class="connect-msg">Server Connection Successful, Connected UserName is: </span>' + userName);
+			var message='hello';
+			var jsonObject = {userId: userName,
+                        	          initialmessage: message
+						  };
+
+			var jobj={
+				  u1:userName,
+				  u2:user2
+				  };
+			socket.emit('register',jsonObject);
+			socket.emit('loadthreadhistory',jobj);
+			
+			});
+		
+
+		function sendMessage(){
+			var message = $('#msg').val();
+                        $('#msg').val('');
+			var toUser = $('#touser').val();
+			var notification= $('#notify').val();	
+			if(notification=="Chat"){
+			var jsonObject = {
+					  message: message,
+					  touid: toUser,
+					  type: notification
+					 };
+                        socket.emit('notification', jsonObject);	
+			}
+			if(notification!="Chat"){
+			var msg="you have recieved a "+notification+" from user "+ userName;
+			var jsonObject = {message: message,
+					  touid: toUser,
+					  type: notification};
+                        socket.emit('notification', jsonObject);	
+			}	
+		}
+
+		function output(message) {
+                        var currentTime = "<span class='time'>" +  moment().format('HH:mm:ss.SSS') + "</span>";
+                        var element = $("<div>" + currentTime + " " + message + "</div>");
+			$('#console').prepend(element);
+		}
+
+        $(document).keydown(function(e){
+            if(e.keyCode == 13) {
+                $('#send').click();
+            }
+        });
+	</script>
+</head>
+
+<body>
+
+	<h1>121 Chat - Complete Single Or Multiuser Chat</h1>
+
+	<br/>
+
+	<div id="console" class="well">
+	</div>
+
+        <form class="well form-inline" onsubmit="return false;">
+		<select id="notify">
+		  <option value="Chat">Chat</option>	
+		  <option value="BondRequest">BondRequest</option>
+		  <option value="FollowRequest">FollowRequest</option>
+		  <option value="Ace">Ace</option>
+		  <option value="Post">Post</option>
+		  <option value="BondAccept">BondAccept</option>
+		  <option value="Share">Share</option>	
+		  <option value="Tag">Tag</option>
+		</select>	
+           <input id="msg" class="input-xlarge" type="text" placeholder="Type Message Here...."/>
+	   <input id="touser" class="input-xlarge" type="text" placeholder="Select User To Send..."/>
+	   <input id="fromuser" class="input-xlarge" type="text" placeholder="Type From UserName"/>	 	
+	   <button type="button" onClick="sendMessage()" class="btn" id="send">Send</button>
+          </form>
+
+
+
+</body>
+
+</html>

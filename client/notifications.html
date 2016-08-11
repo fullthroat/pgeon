@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+        <meta charset="utf-8" />
+
+        <title>121 Chat Notifications</title>
+
+        <link href="bootstrap.css" rel="stylesheet">
+
+	<style>
+		body {
+			padding:20px;
+		}
+		#console {
+			height: 500px;
+			overflow: auto;
+		}
+		.touser-msg{color:blue;}
+		.username-msg {color:orange;}
+		.connect-msg {color:green;}
+		.disconnect-msg {color:red;}
+		.send-msg {color:#888}
+	</style>
+
+
+	<script src="js/socket.io/socket.io.js"></script>
+        <script src="js/moment.min.js"></script>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+	<script>
+
+                var userName = 'notification786';
+
+		var socket =  io.connect('http://localhost:5054'); 
+
+		socket.on('connect', function(data) {
+			output('<span class=connect-msg">Notifications Connection Successful to server:</span>');
+			var message='Hi, This is notifications speaking';
+			var jsonObject = {username: userName,
+					  sessionid : userName,	
+                        	          initialmessage: message
+					  };
+			socket.emit('register',jsonObject);
+		});
+
+		socket.on('notification', function(data) {
+			output('<span class="username-msg">Notification Message for User: '+data.touid + ' :::.... </span>'+ data.message);
+		});
+
+		socket.on('disconnect', function() {
+			output('<span class="disconnect-msg">The client has disconnected!</span>');
+		});
+
+                function sendDisconnect() {
+                        socket.disconnect();
+                }
+
+		function output(message) {
+                        var currentTime = "<span class='time'>" +  moment().format('HH:mm:ss.SSS') + "</span>";
+                        var element = $("<div>" + currentTime + " " + message + "</div>");
+			$('#console').prepend(element);
+		}
+
+        $(document).keydown(function(e){
+            if(e.keyCode == 13) {
+                $('#send').click();
+            }
+        });
+	</script>
+</head>
+
+<body>
+
+	<h1>Notifications Sea -- Combined Notifications for all clients</h1>
+
+	<br/>
+
+	<div id="console" class="well">
+	</div>
+
+</body>
+
+</html>
